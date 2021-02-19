@@ -107,6 +107,8 @@ int main (int argc, char **argv)
                     waitpid(pid, &status, 0);
                 }
                
+            } else {
+                printf("%s: Error command not found\n", user_input_char);
             }
             
 
