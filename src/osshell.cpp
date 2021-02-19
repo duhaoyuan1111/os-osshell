@@ -5,6 +5,8 @@
 #include <sstream>
 #include <vector>
 #include <unistd.h>
+#include <sys/mman.h>
+#include <sys/wait.h>
 
 void allocateArrayOfCharArrays(char ***array_ptr, size_t array_length, size_t item_size);
 void freeArrayOfCharArrays(char **array, size_t array_length);
@@ -29,7 +31,6 @@ int main (int argc, char **argv)
         i++;
     }
 
-
     // Welcome message
     printf("Welcome to OSShell! Please enter your commands ('exit' to quit).\n");
 
@@ -40,6 +41,74 @@ int main (int argc, char **argv)
     allocateArrayOfCharArrays(&command_list, 32, 128);
 
     // Repeat:
+    while (true){
+        std::cout << "osshell> ";
+        char *user_input_char;
+        std::string user_input;
+        std::cin.getline(user_input_char, 128);
+        user_input = user_input_char;
+
+        //std::cout << user_input << "!!\n";
+
+        if (user_input == "exit"){
+            exit(-1);
+        } else if (user_input == "history"){
+            printf("History!\n");
+        } else if (user_input[0] == '.' || user_input[0] == '/'){
+            printf("Start with a . or /!\n");
+            
+        } else {
+            
+            // run system command
+            char *arguments[128];
+            char *execvFirstParamList[128];
+            
+            char slash = {'/'};
+            char *slash_ptr = &slash;
+            int j = 0;
+            
+            //std::cout << user_input << "\n";
+
+            splitString(user_input,' ',arguments);
+            
+            while(os_path_list[j] != NULL){
+                int k = 0;
+                char *execvFirstParamHalf;
+                char *execvFirstParamAll;
+                std::string temp;
+                execvFirstParamHalf = strcat(os_path_list[j],slash_ptr);
+                temp = execvFirstParamHalf;
+                temp.erase(temp.find_last_not_of("\t")+1); // delete annoying '\t'
+                char *execvFirstParamHalfNew = (char*) temp.c_str();
+                execvFirstParamAll = strcat(execvFirstParamHalfNew,arguments[0]);
+                
+                printf("3333333333333333\n");
+                //std::cout << "\n execvFirstParamAll is: "<< execvFirstParamAll << " | arguments is: " << arguments[0] << " then: " << arguments[1] << "\n";
+                
+                j++;
+            }
+            /*int pid;
+            pid = fork();
+            if (pid == 0){ // child
+                
+                execv(execvFirstParamAll, arguments);
+                
+            } else { // parent
+                int status;
+                waitpid(pid, &status, 0);
+            }*/
+
+
+        }
+        //break;
+
+
+
+
+
+
+
+    }
     //  Print prompt for user input: "osshell> " (no newline)
     //  Get user input for next command
     //  If command is `exit` exit loop / quit program
@@ -103,7 +172,9 @@ void splitString(std::string text, char d, char **result)
 
     for (i = 0; i < list.size(); i++)
     {
+        
         strcpy(result[i], list[i].c_str());
+        
     }
     result[list.size()] = NULL;
 }
