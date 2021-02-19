@@ -44,8 +44,41 @@ int main (int argc, char **argv)
         } else if (strcmp(user_input_char,"history")==0){
             printf("History!\n");
         } else if (user_input_char[0] == '.' || user_input_char[0] == '/'){
-            printf("Start with a . or /!\n");
-            
+            int flag = 0;
+            char tail[128];
+            for (int b=0;b<strlen(tail);b++){
+                memset(tail,'\0',sizeof(tail));
+            }
+            for (int j=0;j<strlen(user_input_char);j++){
+                if (user_input_char[j] != ' ' && flag == 0){
+                    tail[j] = user_input_char[j];
+                } else {
+                    flag = 1;
+                }
+            }
+            // To find if a path is valid and can be executed
+            int ok = 0;
+            if (access(tail,X_OK)==0){
+                ok = 1;
+            }
+            // prepare the 2nd param for execv()
+            char **cmd_2;
+            std::string user_input_string = user_input_char;
+            allocateArrayOfCharArrays(&cmd_2,16,64);
+            splitString(user_input_string,' ',cmd_2);
+            if (ok == 1){ // found command, execv!
+                int pid;
+                pid = fork();
+                if (pid == 0) { // child
+                    execv(tail,cmd_2);
+                } else {// parent
+                    int status;
+                    waitpid(pid, &status, 0);
+                }
+               
+            } else {
+                printf("%s: Error command not found\n", user_input_char);
+            }
         } else if (user_input_char[0] == '\n'){
 
         } else {
@@ -94,9 +127,7 @@ int main (int argc, char **argv)
             char **cmd;
             std::string user_input_string = user_input_char;
             allocateArrayOfCharArrays(&cmd,16,64);
-            
             splitString(user_input_string,' ',cmd);
-            
             if (counter < 8){ // found command, execv!
                 int pid;
                 pid = fork();
@@ -110,26 +141,10 @@ int main (int argc, char **argv)
             } else {
                 printf("%s: Error command not found\n", user_input_char);
             }
-            
-
         }
         
-
-
-
-
-
-
-
     }
-    //  Print prompt for user input: "osshell> " (no newline)
-    //  Get user input for next command
-    //  If command is `exit` exit loop / quit program
-    //  If command is `history` print previous N commands
-    //  For all other commands, check if an executable by that name is in one of the PATH directories
-    //   If yes, execute it
-    //   If no, print error statement: "<command_name>: Error command not found" (do include newline)
-
+    
     // Free allocated memory
     freeArrayOfCharArrays(os_path_list, 16);
     freeArrayOfCharArrays(command_list, 32);
