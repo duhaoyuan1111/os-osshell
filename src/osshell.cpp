@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <sys/mman.h>
 #include <sys/wait.h>
+#include <stdio.h>
 
 void allocateArrayOfCharArrays(char ***array_ptr, size_t array_length, size_t item_size);
 void freeArrayOfCharArrays(char **array, size_t array_length);
@@ -21,16 +22,11 @@ int main (int argc, char **argv)
     allocateArrayOfCharArrays(&os_path_list, 16, 64);
     char* os_path = getenv("PATH");
     splitString(os_path, ':', os_path_list);
-
-
-    // Example code for how to loop over NULL terminated list of strings
-    int i = 0;
-    while (os_path_list[i] != NULL)
-    {
-        printf("PATH[%2d]: %s\n", i, os_path_list[i]);
-        i++;
-    }
-
+    char path_array[16][64];
+    
+    
+    
+    
     // Welcome message
     printf("Welcome to OSShell! Please enter your commands ('exit' to quit).\n");
 
@@ -43,64 +39,58 @@ int main (int argc, char **argv)
     // Repeat:
     while (true){
         std::cout << "osshell> ";
-        char *user_input_char;
-        std::string user_input;
+        char user_input_char[128];
         std::cin.getline(user_input_char, 128);
-        user_input = user_input_char;
-
-        //std::cout << user_input << "!!\n";
-
-        if (user_input == "exit"){
+        
+        /*for (int i=0;i<strlen(user_input_char);i++){
+            std::cout << user_input_char[i] << "!!\n";
+        }*/
+        if (strcmp(user_input_char,"exit")==0){
             exit(-1);
-        } else if (user_input == "history"){
+        } else if (strcmp(user_input_char,"history")==0){
             printf("History!\n");
-        } else if (user_input[0] == '.' || user_input[0] == '/'){
+        } else if (user_input_char[0] == '.' || user_input_char[0] == '/'){
             printf("Start with a . or /!\n");
             
+        } else if (user_input_char[0] == '\n'){
+
         } else {
-            
-            // run system command
-            char *arguments[128];
-            char *execvFirstParamList[128];
-            
-            char slash = {'/'};
-            char *slash_ptr = &slash;
-            int j = 0;
-            
-            //std::cout << user_input << "\n";
-
-            splitString(user_input,' ',arguments);
-            
-            while(os_path_list[j] != NULL){
-                int k = 0;
-                char *execvFirstParamHalf;
-                char *execvFirstParamAll;
-                std::string temp;
-                execvFirstParamHalf = strcat(os_path_list[j],slash_ptr);
-                temp = execvFirstParamHalf;
-                temp.erase(temp.find_last_not_of("\t")+1); // delete annoying '\t'
-                char *execvFirstParamHalfNew = (char*) temp.c_str();
-                execvFirstParamAll = strcat(execvFirstParamHalfNew,arguments[0]);
-                
-                printf("3333333333333333\n");
-                //std::cout << "\n execvFirstParamAll is: "<< execvFirstParamAll << " | arguments is: " << arguments[0] << " then: " << arguments[1] << "\n";
-                
-                j++;
+            for (int i=0; i< 16; i++){
+                memset(path_array[i],'\0',sizeof(path_array[i]));
             }
-            /*int pid;
-            pid = fork();
-            if (pid == 0){ // child
+            int flag = 0;
+            char tail[128];
+            for (int b=0;b<strlen(tail);b++){
+                memset(tail,'\0',sizeof(tail));
+            }
+            for (int j=0;j<strlen(user_input_char);j++){
+                if (user_input_char[j] != ' ' && flag == 0){
+                    tail[j] = user_input_char[j];
+                } else {
+                    flag = 1;
+                }
+            }
+            for (int i=0;i<sizeof(os_path_list);i++){
+                int count = 0;
+                for (int k=0;k<strlen(os_path_list[i]);k++){
+                    if (os_path_list[i][k] != '\t'){
+                        count++;
+                        path_array[i][k] = os_path_list[i][k];
+                    }
+                }
+                path_array[i][count] = '/';
+                for (int h=1;h<strlen(tail)+1;h++){
+                    
+                    path_array[i][count+h] = tail[h-1];
+                }
                 
-                execv(execvFirstParamAll, arguments);
-                
-            } else { // parent
-                int status;
-                waitpid(pid, &status, 0);
-            }*/
+                printf("path_array[%d]: %s\n",i,path_array[i]);
+            }
 
+            
 
         }
-        //break;
+        
 
 
 
