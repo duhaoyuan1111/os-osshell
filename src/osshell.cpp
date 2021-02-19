@@ -24,9 +24,6 @@ int main (int argc, char **argv)
     splitString(os_path, ':', os_path_list);
     char path_array[16][64];
     
-    
-    
-    
     // Welcome message
     printf("Welcome to OSShell! Please enter your commands ('exit' to quit).\n");
 
@@ -42,9 +39,6 @@ int main (int argc, char **argv)
         char user_input_char[128];
         std::cin.getline(user_input_char, 128);
         
-        /*for (int i=0;i<strlen(user_input_char);i++){
-            std::cout << user_input_char[i] << "!!\n";
-        }*/
         if (strcmp(user_input_char,"exit")==0){
             exit(-1);
         } else if (strcmp(user_input_char,"history")==0){
@@ -55,6 +49,9 @@ int main (int argc, char **argv)
         } else if (user_input_char[0] == '\n'){
 
         } else {
+            // The <os_path_list> prepared by professor has flaws.
+            // Each path has several '\t' padded, so I create a new list
+            // The new list has "path"+"/"+"user_command" style.
             for (int i=0; i< 16; i++){
                 memset(path_array[i],'\0',sizeof(path_array[i]));
             }
@@ -84,9 +81,33 @@ int main (int argc, char **argv)
                     path_array[i][count+h] = tail[h-1];
                 }
                 
-                printf("path_array[%d]: %s\n",i,path_array[i]);
             }
-
+            // To find if a path is valid and can be executed
+            int counter = 0;
+            while (counter<8){// if ==8, no valid command found
+                if (access(path_array[counter],X_OK)==0){
+                    break;
+                }
+                counter++;
+            }
+            // prepare the 2nd param for execv()
+            char **cmd;
+            std::string user_input_string = user_input_char;
+            allocateArrayOfCharArrays(&cmd,16,64);
+            
+            splitString(user_input_string,' ',cmd);
+            
+            if (counter < 8){ // found command, execv!
+                int pid;
+                pid = fork();
+                if (pid == 0) { // child
+                    execv(path_array[counter],cmd);
+                } else {// parent
+                    int status;
+                    waitpid(pid, &status, 0);
+                }
+               
+            }
             
 
         }
