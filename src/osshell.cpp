@@ -8,6 +8,8 @@
 #include <sys/mman.h>
 #include <sys/wait.h>
 #include <stdio.h>
+#include <fstream>
+
 
 void allocateArrayOfCharArrays(char ***array_ptr, size_t array_length, size_t item_size);
 void freeArrayOfCharArrays(char **array, size_t array_length);
@@ -37,6 +39,15 @@ int main (int argc, char **argv)
     for (int i=0; i< 128; i++){
         memset(user_input_history[i],'\0',sizeof(user_input_history[i]));
     }
+    // Read history file in
+    std::ifstream readFile("history.txt");
+    if (readFile.is_open()){
+        while (readFile.peek() != EOF){
+            readFile.getline(user_input_history[start_of_writing_hist], 128, '\n');
+            start_of_writing_hist++;
+        }
+    }
+    readFile.close();
     // Repeat:
     while (true){
         std::cout << "osshell> ";
@@ -63,6 +74,13 @@ int main (int argc, char **argv)
                 }
             }
             start_of_writing_hist++;
+            // pending history to a file
+            std::ofstream outFile("history.txt");
+            for (int i=0;i<start_of_writing_hist;i++){
+                outFile << user_input_history[i] << '\n';
+            }
+            outFile.close();
+
             exit(-1);
         } else if ((strcmp(user_input_char,"history")==0) || (strncmp(user_input_char,"history ",8)==0)){
             if (strcmp(user_input_char,"history")==0){
