@@ -80,7 +80,7 @@ int main (int argc, char **argv)
                 outFile << user_input_history[i] << '\n';
             }
             outFile.close();
-
+            printf("\n");
             exit(-1);
         } else if ((strcmp(user_input_char,"history")==0) || (strncmp(user_input_char,"history ",8)==0)){
             if (strcmp(user_input_char,"history")==0){
